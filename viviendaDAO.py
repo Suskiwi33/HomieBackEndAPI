@@ -178,3 +178,7 @@ class ViviendaDAO:
             
             self.__db = new_db
         # Si ya está conectada, no hace nada.
+    
+    def checkRows(self, rowcount):
+        """Verifica si se afectó exactamente una fila (indicando éxito)."""
+        return rowcount == 1
