@@ -59,8 +59,8 @@ class ViviendaDAO:
     def register(self, user: Usuario):
         self.ensure_connection()
         with self.__db.cursor() as dbCursor:
-            sql = "INSERT INTO usuario (usuario, password) VALUES (%s, %s)"
-            values = (user.getNombre(), user.getContraseña())
+            sql = "INSERT INTO usuario (usuario, password, email) VALUES (%s, %s, %s)"
+            values = (user.getNombre(), user.getContraseña(), user.getEmail())
             dbCursor.execute(sql, values)
             self.__db.commit()
             return self.checkRows(dbCursor.rowcount)

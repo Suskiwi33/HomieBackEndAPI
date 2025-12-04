@@ -31,6 +31,7 @@ def register():
     user = Usuario()
     user.setNombre(data.get("username"))
     user.setContraseña(data.get("password"))
+    user.setEmail(data.get("email"))
     
     if DAO.register(user):
         return jsonify({"message": f"Usuario '{user.getNombre()}' registrado correctamente."}), 201
