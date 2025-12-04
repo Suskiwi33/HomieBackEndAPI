@@ -112,3 +112,8 @@ def selectViviendaByID(self, vivienda_template):
             if v.getIdVivienda() == vivienda_template.getIdVivienda():
                 return v
         return None
+
+def closeConnection(self):
+        """Simula el cierre de la conexión (no hace nada en la versión en memoria)."""
+        print("DEBUG: Conexión de DAO cerrada (simulada).")
+        pass
