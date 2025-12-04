@@ -4,8 +4,8 @@ def coneccion_bd():
     try:
         connection = mysql.connector.connect(
             host="localhost",
-            user="your_username",
-            password="your_password",
+            user="root",
+            password="123456",
             database="homie"
         )
         if connection.is_connected():
