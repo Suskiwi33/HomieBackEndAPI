@@ -55,42 +55,51 @@ class ViviendaDAO:
             print(f"Database error during login: {e}")
             # En caso de error de BD, el login falla
             return False
-            
-        def insertVivienda(self, vivienda: Vivienda):
-            self.ensure_connection()
-            with self.__db.cursor() as dbCursor:
-                sql =  """
-            INSERT INTO vivienda (
-            nombre, balcony, bath_num, `condition`, floor, garage, garden, 
-            ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
-            m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id
-            ) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-                values = (
-        vivienda.getNombre(),
-        vivienda.getBalcony(),
-        vivienda.getBathNum(),
-        vivienda.getCondition(),
-        vivienda.getFloor(),
-        vivienda.getGarage(),
-        vivienda.getGarden(),
-        vivienda.getGroundSize(),
-        vivienda.getHouseType(),
-        vivienda.getLift(),
-        vivienda.getLocCity(),
-        vivienda.getLocDistrict(),
-        vivienda.getLocNeigh(),
-        vivienda.getM2Real(),
-        vivienda.getPrice(),
-        vivienda.getRoomNumbers(),
-        vivienda.getSwimmingPool(),
-        vivienda.getTerrace(),
-        vivienda.getUnfurnished(),
-        vivienda.getIdUsuario()
+
+    def register(self, user: Usuario):
+        self.ensure_connection()
+        with self.__db.cursor() as dbCursor:
+            sql = "INSERT INTO usuario (usuario, password) VALUES (%s, %s)"
+            values = (user.getNombre(), user.getContraseña())
+            dbCursor.execute(sql, values)
+            self.__db.commit()
+            return self.checkRows(dbCursor.rowcount)
+
+    def insertVivienda(self, vivienda: Vivienda):
+        self.ensure_connection()
+        with self.__db.cursor() as dbCursor:
+            sql =  """
+        INSERT INTO vivienda (
+        nombre, balcony, bath_num, `condition`, floor, garage, garden, 
+        ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
+        m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id
+        ) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        values = (
+            vivienda.getNombre(),
+            vivienda.getBalcony(),
+            vivienda.getBathNum(),
+            vivienda.getCondition(),
+            vivienda.getFloor(),
+            vivienda.getGarage(),
+            vivienda.getGarden(),
+            vivienda.getGroundSize(),
+            vivienda.getHouseType(),
+            vivienda.getLift(),
+            vivienda.getLocCity(),
+            vivienda.getLocDistrict(),
+            vivienda.getLocNeigh(),
+            vivienda.getM2Real(),
+            vivienda.getPrice(),
+            vivienda.getRoomNumbers(),
+            vivienda.getSwimmingPool(),
+            vivienda.getTerrace(),
+            vivienda.getUnfurnished(),
+            vivienda.getIdUsuario()
         )
-                dbCursor.execute(sql, values)
-                self.db.commit()
+        dbCursor.execute(sql, values)
+        self.db.commit()
 
     def selectAllViviendas(self) -> List[Vivienda]:
             self.ensure_connection()

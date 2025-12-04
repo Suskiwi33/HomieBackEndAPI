@@ -24,6 +24,19 @@ def login():
     else:
         return jsonify({"error": "Credenciales inválidas"}), 401
 
+@app.route("/api/register", methods=["POST"])
+def register():
+    """Ruta para registrar un nuevo usuario."""
+    data = req.get_json() or {}
+    user = Usuario()
+    user.setNombre(data.get("username"))
+    user.setContraseña(data.get("password"))
+    
+    if DAO.register(user):
+        return jsonify({"message": f"Usuario '{user.getNombre()}' registrado correctamente."}), 201
+    else:
+        return jsonify({"error": "Error al registrar el usuario."}), 500
+
 @app.route("/api/selectAll", methods=["GET"]) # Ruta corregida
 def getAllViviendas():
     """Ruta para obtener la lista completa de viviendas."""
