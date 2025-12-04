@@ -8,17 +8,64 @@ class ViviendaDAO:
         self.__db = None
         self._user = None
         self._password = None
-        
-    def login(self, user):
-        """Connect to the database and store credentials for reconnection."""
-        self._user = user.getNombre()
-        self._password = user.getContraseña()
-        dbconnector = coneccion_bd(self._user, self._password)
+    
+    def conectarBaseDatos(self):
+        """Connect to the database using provided credentials."""
+        dbconnector = coneccion_bd()
         self.__db = dbconnector
         if self.__db is not None:
             return True
         else:
             return False
+        
+    def login(self, user):
+        self._user = user.getNombre()
+        self._password = user.getContraseña()
+        
+        # NOTE: Using string formatting for SQL is dangerous (SQL Injection). 
+        # Always use parameterization as shown with %s.
+        sql = "SELECT * FROM usuario WHERE nombre = %s AND contraseña = %s"
+        values = (self._user, self._password)
+
+        # --- Database interaction is needed here ---
+        
+        # 1. Get a database cursor (self._db_connection is an assumption)
+        cursor = coneccion_bd.cursor()
+        
+        # 2. Execute the query
+        cursor.execute(sql, values)
+        
+        # 3. Fetch one result (or check how many rows were affected/returned)
+        result = cursor.fetchone() 
+        
+        # 4. Check the result
+        # If fetchone() returns a row (i.e., not None), the user exists.
+
+        # --- Hypothetical implementation using standard DB-API conventions ---
+
+        try:
+            # Assuming 'self._connection' is your active database connection
+            with self._connection.cursor() as cursor:
+                # Execute the query with parameterized values
+                cursor.execute(sql, values)
+                
+                # Try to fetch one result. If a row is found, it means the user exists.
+                # result will be a tuple/dict (the row) if found, or None if not found.
+                result = cursor.fetchone() 
+                
+                # If result is NOT None (i.e., a row was found), return True
+                if result:
+                    print(f"User {self._user} logged in successfully.")
+                    return True
+                else:
+                    # If no row was found, return False
+                    print(f"Login failed for user {self._user}.")
+                    return False
+                    
+        except Exception as e:
+            # Handle database connection or execution errors
+            print(f"Database error during login: {e}")
+            return False # Return False on error
         
     def insertVivienda(self, vivienda: Vivienda):
         self.ensure_connection()
@@ -75,24 +122,24 @@ def selectAllViviendas(self) -> List[Vivienda]:
                 vivienda = Vivienda()
                 vivienda.setNombre(tupla["nombre"])
                 vivienda.setBalcony(tupla["balcony"])
-                vivienda.setBath_num(tupla["bath_num"])
+                vivienda.setBathNum(tupla["bath_num"])
                 vivienda.setCondition(tupla["condition"])
                 vivienda.setFloor(tupla["floor"])
                 vivienda.setGarage(tupla["garage"])
                 vivienda.setGarden(tupla["garden"])
-                vivienda.setGround_size(tupla["ground_size"])
-                vivienda.setHouse_type(tupla["house_type"])
+                vivienda.setGroundSize(tupla["ground_size"])
+                vivienda.setHouseType(tupla["house_type"])
                 vivienda.setLift(tupla["lift"])
-                vivienda.setLoc_city(tupla["loc_city"])
-                vivienda.setLoc_district(tupla["loc_district"])
-                vivienda.setLoc_neigh(tupla["loc_neigh"])
-                vivienda.setM2_real(tupla["m2_real"])
+                vivienda.setLocCity(tupla["loc_city"])
+                vivienda.setLocDistrict(tupla["loc_district"])
+                vivienda.setLocNeigh(tupla["loc_neigh"])
+                vivienda.setM2Real(tupla["m2_real"])
                 vivienda.setPrice(tupla["price"])
-                vivienda.setRoom_numbers(tupla["room_numbers"])
-                vivienda.setSwimming_pool(tupla["swimming_pool"])
+                vivienda.setRoomNumbers(tupla["room_numbers"])
+                vivienda.setSwimmingPool(tupla["swimming_pool"])
                 vivienda.setTerrace(tupla["terrace"])
                 vivienda.setUnfurnished(tupla["unfurnished"])
-                vivienda.setUsuario_id(tupla["usuario_id"])
+                vivienda.setIdUsuario(tupla["usuario_id"])
                 viviendaARR.append(vivienda)
 
         return viviendaARR
