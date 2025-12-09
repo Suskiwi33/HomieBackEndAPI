@@ -5,11 +5,18 @@ from viviendaDAO import ViviendaDAO
 from vivienda import Vivienda
 from usuario import Usuario
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import timedelta
 
 app = Flask(__name__)
 DAO = ViviendaDAO()
 
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
+
+# JWT 
+app.config['JWT_SECRET_KEY'] = '123456'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+jwt = JWTManager(app)
 
 @app.route("/api/login", methods=["POST"]) # Ruta corregida
 def login():
@@ -20,7 +27,9 @@ def login():
     user.setContraseña(data.get("password"))
     
     if DAO.login(user):
-        return jsonify({"message": f"Login correcto. Usuario: {user.getNombre()}"}), 200
+        # return jsonify({"message": f"Login correcto. Usuario: {user.getNombre()}"}), 200
+        access_token = create_access_token(identity=user.getNombre())
+        return jsonify({"access_token": access_token}), 200
     else:
         return jsonify({"error": "Credenciales inválidas"}), 401
 
@@ -38,26 +47,26 @@ def register():
     else:
         return jsonify({"error": "Error al registrar el usuario."}), 500
 
-@app.route("/api/selectAll", methods=["GET"]) # Ruta corregida
-def getAllViviendas():
-    """Ruta para obtener la lista completa de viviendas."""
-    viviendas = DAO.selectAllViviendas() or []
-    viviendasList = [c.to_dict() for c in viviendas]
-    return jsonify(viviendasList)
-
+@app.route("/api/guardados", methods=["GET"])
+@jwt_required()
+def get_guardados():
+    usuario_nombre = get_jwt_identity()
+    guardados = DAO.selectViviendasByUsuario(usuario_nombre) or []
+    guardados_list = [v.to_dict() for v in guardados]
+    return jsonify({"usuario": usuario_nombre, "guardados": guardados_list})
 
 @app.route("/api/addVivienda", methods=["POST"]) # Ruta corregida
 def insertVivienda():
     """Ruta para insertar una nueva vivienda en la base de datos simulada."""
     data = req.get_json() or {}
-    
+
     campos_esperados = [
         "nombre", "balcony", "bath_num", "condition", "floor", "garage", "garden",
         "ground_size", "house_type", "lift", "loc_city", "loc_district", "loc_neigh",
         "m2_real", "price", "room_numbers", "swimming_pool", "terrace", "unfurnished", 
         "usuario_id", "age", "energy_cert" # Añadidos campos para la predicción si se usaran
     ]
-    
+
     datos_vivienda = {campo: data.get(campo) for campo in campos_esperados}
 
     # Validación de campos obligatorios
