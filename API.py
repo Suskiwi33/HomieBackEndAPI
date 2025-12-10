@@ -18,20 +18,36 @@ app.config['JWT_SECRET_KEY'] = '123456'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
-@app.route("/api/login", methods=["POST"]) # Ruta corregida
+@app.route("/api/login", methods=["POST"])
 def login():
-    """Ruta para simular el inicio de sesión de un usuario."""
+    """Ruta para simular el inicio de sesión de un usuario y devolver su ID."""
     data = req.get_json() or {}
+    
+    # 1. Crear y cargar el objeto Usuario con las credenciales
     user = Usuario()
     user.setNombre(data.get("username"))
     user.setContraseña(data.get("password"))
     
-    if DAO.login(user):
-        # return jsonify({"message": f"Login correcto. Usuario: {user.getNombre()}"}), 200
-        access_token = create_access_token(identity=user.getNombre())
-        return jsonify({"access_token": access_token}), 200
+    # 2. Llamar al DAO. Si el login es exitoso, 'authenticated_user' será el objeto Usuario
+    #    que ya tiene el ID cargado internamente por el método DAO.login.
+    authenticated_user = DAO.login(user) # Asumiendo que DAO es una instancia de tu clase DAO
+    
+    if authenticated_user:
+        # 3. Obtener el ID y el nombre del usuario autenticado
+        user_id = authenticated_user.getId() 
+        username = authenticated_user.getNombre()
+        
+        # 4. Crear el token (la identidad puede ser el ID o el nombre)
+        access_token = create_access_token(identity=username) 
+        
+        # 5. Devolver el token Y el ID del usuario
+        return jsonify({
+            "access_token": access_token,
+            "user_id": user_id 
+        }), 200
     else:
         return jsonify({"error": "Credenciales inválidas"}), 401
+    
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -55,7 +71,7 @@ def get_guardados():
     guardados_list = [v.to_dict() for v in guardados]
     return jsonify({"usuario": usuario_nombre, "guardados": guardados_list})
 
-@app.route("/api/addVivienda", methods=["POST"]) # Ruta corregida
+@app.route("/api/addVivienda", methods=["POST"])
 def insertVivienda():
     """Ruta para insertar una nueva vivienda en la base de datos simulada."""
     data = req.get_json() or {}
@@ -64,16 +80,14 @@ def insertVivienda():
         "nombre", "balcony", "bath_num", "condition", "floor", "garage", "garden",
         "ground_size", "house_type", "lift", "loc_city", "loc_district", "loc_neigh",
         "m2_real", "price", "room_num", "swimming_pool", "terrace", "unfurnished", 
-        "usuario_id", "age", "energy_cert" # Añadidos campos para la predicción si se usaran
+        "user_id"
     ]
 
     datos_vivienda = {campo: data.get(campo) for campo in campos_esperados}
 
-    # Validación de campos obligatorios
     if not datos_vivienda.get("nombre") or datos_vivienda.get("price") is None:
         return jsonify({"error": "Los campos 'nombre' y 'price' son obligatorios"}), 400
 
-    # Conversión de tipos y manejo de errores
     try:
         if datos_vivienda.get("price") is not None:
             datos_vivienda["price"] = float(datos_vivienda["price"])
@@ -85,7 +99,6 @@ def insertVivienda():
             datos_vivienda["bath_num"] = int(datos_vivienda["bath_num"])
         if datos_vivienda.get("floor") is not None:
             datos_vivienda["floor"] = int(datos_vivienda["floor"])
-        # Asumiendo que el resto de booleanos/int-like son convertibles
         for key in ["balcony", "garage", "garden", "lift", "swimming_pool", "terrace", "unfurnished"]:
             if datos_vivienda.get(key) is not None:
                  datos_vivienda[key] = int(datos_vivienda[key])
@@ -93,7 +106,6 @@ def insertVivienda():
     except ValueError:
         return jsonify({"error": "Uno o más campos numéricos ('price', 'm2_real', etc.) no son válidos"}), 400
         
-    # Inicialización del objeto Vivienda
     try:
         v = Vivienda()
         v.setNombre(datos_vivienda["nombre"])
@@ -115,13 +127,11 @@ def insertVivienda():
         v.setTerrace(datos_vivienda.get("terrace", 0))
         v.setUnfurnished(datos_vivienda.get("unfurnished", 0))
         v.setPrice(datos_vivienda["price"])
-        v.setIdUsuario(datos_vivienda["usuario_id"])
+        v.setIdUsuario(datos_vivienda["user_id"])
         
     except Exception as e:
-        # Esto captura errores de inicialización si las validaciones no fueron suficientes
         return jsonify({"error": f"Error al inicializar la Vivienda: {str(e)}"}), 500
 
-    # Inserción en el DAO
     ok = DAO.insertVivienda(v)
     
     if not ok:
@@ -139,14 +149,13 @@ def deleteVivienda():
         return jsonify({"error": "id de Vivienda requerido"}), 400
     try:
         idv = int(id_str)
-    except ValueError: # Corregido: usar ValueError para int()
+    except ValueError:
         return jsonify({"error": "id debe ser un número entero"}), 400
 
     
     vivienda_temp = Vivienda()
     vivienda_temp.setIdVivienda(idv)
     
-    # Simulación: Primero comprobamos que exista (lo que en el original era 'Hay que hacerlo ding dong')
     existing_vivienda = DAO.selectViviendaByID(vivienda_temp)
     
 
@@ -175,8 +184,7 @@ def predictPrice():
     data = req.get_json() or {}
 
     try:
-        # 1. Crear un DataFrame con los datos de entrada
-        # Se añaden valores por defecto (ej. 0 o '') si faltan campos para evitar errores de KeyError
+        
         input_data = {}
         for feature in MODEL_FEATURES:
             # Si la columna está en los datos de entrada, la usa. Si no, usa 0 o '' dependiendo del tipo (simulación)
@@ -249,22 +257,4 @@ if __name__ == '__main__':
     print("Prueba las rutas POST y GET para interactuar con la API simulada.")
     print("==============================================")
 
-    # Añadir datos de ejemplo para probar el selectAll
-    #ejemplo_vivienda_data = {
-    #    "nombre": "Apartamento Luminoso",
-    #    "price": 300000, "m2_real": 90, "room_num": 3, "bath_num": 2,
-    #    "condition": "good", "house_type": "apartment", "loc_city": "madrid",
-    #    "loc_district": "centro", "loc_neigh": "sol", "balcony": 1, "floor": 2,
-    #    "garage": 0, "garden": 0, "ground_size": 0.0, "lift": 1,
-    #    "swimming_pool": 0, "terrace": 0, "unfurnished": 0, "usuario_id": "testuser_id",
-    #    "age": 10, "energy_cert": "b"
-    #}
-    #v_ejemplo = Vivienda()
-    #for key, value in ejemplo_vivienda_data.items():
-    #    setter_func = getattr(v_ejemplo, f"set{key.replace('_', ' ').title().replace(' ', '')}", None)
-    #    if setter_func:
-    #        setter_func(value)
-    #DAO.insertVivienda(v_ejemplo)
-
-    # Iniciar la aplicación
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -22,39 +22,45 @@ class ViviendaDAO:
 
     def login(self, user):
         """
-        Verifica las credenciales del usuario de la aplicación usando
-        la conexión de servicio (self.__db).
+        Verifica las credenciales del usuario y, si son correctas, 
+        carga el ID de la BD en el objeto 'user' y lo devuelve.
         """
-        self.ensure_connection() # Asegura que self.__db está activo (usando credenciales de servicio)
+        self.ensure_connection()
 
-        self._user = user.getNombre()
-        self._password = user.getContraseña()
+        username = user.getNombre()
+        password = user.getContraseña()
 
+        # IMPORTANTE: ¡Nunca almacenes contraseñas sin hash!
+        # Este código usa la contraseña en texto plano, lo cual es INSEGURO. 
+        # Deberías usar funciones de hashing (como bcrypt) y verificar el hash aquí.
         sql = "SELECT id, usuario, password FROM usuario WHERE usuario = %s AND password = %s"
-        values = (self._user, self._password)
+        values = (username, password)
 
         try:
-            # Usa el objeto de conexión ALMACENADO (self.__db), no la función coneccion_bd
             with self.__db.cursor() as cursor: 
-                
-                # 1. Ejecutar la consulta con parámetros
                 cursor.execute(sql, values)
-                
-                # 2. Verificar el resultado
                 result = cursor.fetchone() 
                 
                 if result:
-                    print(f"✅ User {self._user} logged in successfully.")
-                    # Opcional: Podrías guardar el ID del usuario: user.setIdUsuario(result[0])
-                    return True
-                else:
-                    print(f"❌ Login failed for user {self._user}.")
-                    return False
+                    # El ID está en la posición 0 del resultado:
+                    user_id = result[0] 
                     
+                    # 1. Cargar el ID en el objeto 'Usuario' que se pasó como argumento
+                    user.setId(user_id) # Asumiendo que tu clase Usuario tiene un método setId()
+
+                    print(f"✅ User {username} logged in successfully. ID: {user_id}")
+                    
+                    # 2. Devolver el objeto Usuario modificado con su ID
+                    return user 
+                else:
+                    print(f"❌ Login failed for user {username}.")
+                    # 3. Si falla, devuelve None
+                    return None
+                
         except Exception as e:
             print(f"Database error during login: {e}")
-            # En caso de error de BD, el login falla
-            return False
+            # En caso de error, devuelve None
+            return None
 
     def register(self, user: Usuario):
         self.ensure_connection()
