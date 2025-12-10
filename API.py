@@ -63,7 +63,7 @@ def insertVivienda():
     campos_esperados = [
         "nombre", "balcony", "bath_num", "condition", "floor", "garage", "garden",
         "ground_size", "house_type", "lift", "loc_city", "loc_district", "loc_neigh",
-        "m2_real", "price", "room_numbers", "swimming_pool", "terrace", "unfurnished", 
+        "m2_real", "price", "room_num", "swimming_pool", "terrace", "unfurnished", 
         "usuario_id", "age", "energy_cert" # Añadidos campos para la predicción si se usaran
     ]
 
@@ -79,8 +79,8 @@ def insertVivienda():
             datos_vivienda["price"] = float(datos_vivienda["price"])
         if datos_vivienda.get("m2_real") is not None:
             datos_vivienda["m2_real"] = float(datos_vivienda["m2_real"])
-        if datos_vivienda.get("room_numbers") is not None:
-            datos_vivienda["room_numbers"] = int(datos_vivienda["room_numbers"])
+        if datos_vivienda.get("room_num") is not None:
+            datos_vivienda["room_num"] = int(datos_vivienda["room_num"])
         if datos_vivienda.get("bath_num") is not None:
             datos_vivienda["bath_num"] = int(datos_vivienda["bath_num"])
         if datos_vivienda.get("floor") is not None:
@@ -110,7 +110,7 @@ def insertVivienda():
         v.setLocDistrict(datos_vivienda.get("loc_district", ""))
         v.setLocNeigh(datos_vivienda.get("loc_neigh", ""))
         v.setM2Real(datos_vivienda.get("m2_real", 0.0))
-        v.setRoomNumbers(datos_vivienda.get("room_numbers", 0))
+        v.setRoomNumbers(datos_vivienda.get("room_num", 0))
         v.setSwimmingPool(datos_vivienda.get("swimming_pool", 0))
         v.setTerrace(datos_vivienda.get("terrace", 0))
         v.setUnfurnished(datos_vivienda.get("unfurnished", 0))
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     # Añadir datos de ejemplo para probar el selectAll
     #ejemplo_vivienda_data = {
     #    "nombre": "Apartamento Luminoso",
-    #    "price": 300000, "m2_real": 90, "room_numbers": 3, "bath_num": 2,
+    #    "price": 300000, "m2_real": 90, "room_num": 3, "bath_num": 2,
     #    "condition": "good", "house_type": "apartment", "loc_city": "madrid",
     #    "loc_district": "centro", "loc_neigh": "sol", "balcony": 1, "floor": 2,
     #    "garage": 0, "garden": 0, "ground_size": 0.0, "lift": 1,
