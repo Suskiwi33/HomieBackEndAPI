@@ -212,12 +212,23 @@ def predictPrice():
 
         # 5. Predicción
         modelo_rf = MockRandomForestModel()
-        precio_predicho = modelo_rf.predict(df_prediccion)[0] + MAE
+        raw_prediction = modelo_rf.predict(df_prediccion)
+        
+        # --- BLOQUE A PRUEBA DE BALAS ---
+        # Detectamos automáticamente si viene como lista o como número
+        try:
+            # Intentamos acceder como si fuera lista/array (ej: [250000])
+            precio_base = float(raw_prediction[0])
+        except (TypeError, IndexError):
+            # Si falla (porque ya es un número), lo usamos directamente
+            precio_base = float(raw_prediction)
+        # -------------------------------
+
+        precio_final = precio_base + MAE
         
         return jsonify({
-            "predicted_price": round(float(precio_predicho[0]), 2),
-            "currency": "EUR",
-            #"mae_info": f"El Error Absoluto Medio (MAE) del modelo es: {MAE:,.2f} €"
+            "predicted_price": round(precio_final, 2),
+            "currency": "EUR"
         })
 
     except Exception as e:
