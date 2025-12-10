@@ -1,11 +1,11 @@
-from random import random
+import random
 import pandas as pd
 import numpy as np
 import os
 
 
 MODEL_FEATURES = pd.Index([
-    'm2_real', 'room_numbers', 'bath_num', 'balcony', 'floor', 'garage', 'garden', 
+    'm2_real', 'room_num', 'bath_num', 'balcony', 'floor', 'garage', 'garden', 
     'ground_size', 'lift', 'swimming_pool', 'terrace', 'unfurnished', 
     'condition', 'house_type', 'loc_city', 'loc_district', 'loc_neigh', 
     'age', 'energy_cert'
