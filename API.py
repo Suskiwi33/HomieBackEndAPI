@@ -163,8 +163,11 @@ def deleteVivienda():
     return jsonify({"message": f"Vivienda con ID {idv} y nombre '{existing_vivienda.getNombre()}' eliminada correctamente"})
 
 
-@app.route("/predictPrice", methods=["POST"])
+@app.route("/api/predictPrice", methods=["POST", "OPTIONS"])
 def predictPrice():
+    if req.method == "OPTIONS":
+        return "", 200
+    
     """
     Endpoint para predecir el precio de una vivienda usando el modelo RF.
     Acepta un JSON con todas las características de la vivienda.
