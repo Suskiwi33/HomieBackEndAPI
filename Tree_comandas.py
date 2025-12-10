@@ -18,7 +18,7 @@ y = df['price']
 columnas_caracteristicas = [
     "balcony", "bath_num", "condition", "floor", "garage", "garden", 
     "ground_size", "house_type", "lift", "loc_city", "loc_district", "loc_neigh", 
-    "m2_real", "swimming_pool","room_numbers", "terrace", "unfurnished"
+    "m2_real", "swimming_pool","room_num", "terrace", "unfurnished"
 ]
 
 X = df[columnas_caracteristicas].copy() 
@@ -77,7 +77,7 @@ def predecir_precio_casa_interactivo(modelo, caracteristicas_modelo, mapeos):
     
     try:
         datos_usuario['m2_real'] = float(input("Superficie útil (m2_real): "))
-        datos_usuario['room_numbers'] = int(input("Número de habitaciones (room_numbers): "))
+        datos_usuario['room_num'] = int(input("Número de habitaciones (room_num): "))
         datos_usuario['bath_num'] = int(input("Número de baños (bath_num): "))
         datos_usuario['floor'] = int(input("Piso (floor, 0 para planta baja): "))
         datos_usuario['ground_size'] = float(input("Tamaño del terreno (ground_size, 0 si no aplica): "))
