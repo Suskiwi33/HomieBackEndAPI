@@ -212,7 +212,7 @@ def predictPrice():
 
         # 5. Predicción
         modelo_rf = MockRandomForestModel()
-        precio_predicho = modelo_rf.predict(df_prediccion) + MAE
+        precio_predicho = modelo_rf.predict(df_prediccion)[0] + MAE
         
         return jsonify({
             "predicted_price": round(float(precio_predicho[0]), 2),
