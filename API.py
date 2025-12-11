@@ -34,7 +34,7 @@ def login():
     
     if authenticated_user:
         # 3. Obtener el ID y el nombre del usuario autenticado
-        user_id = authenticated_user.getId() 
+        user_id = authenticated_user.getIdUsuario() 
         username = authenticated_user.getNombre()
         
         # 4. Crear el token (la identidad puede ser el ID o el nombre)
