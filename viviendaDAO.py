@@ -1,5 +1,5 @@
 from vivienda import Vivienda
-from usuario import Usuario
+from Usuario import Usuario
 from db_conexion import coneccion_bd
 from typing import List
 
