@@ -1,87 +1,82 @@
 from vivienda import Vivienda
 from usuario import Usuario
 from db_conexion import coneccion_bd
-from typing import List, Tuple
+from typing import List
 
 class ViviendaDAO:
-    def __init__(self):
-        self.__db = None
-        self._user = None
-        self._password = None
-    
-    def conectarBaseDatos(self):
-        """Connect to the database using provided credentials."""
-        dbconnector = coneccion_bd()
-        self.__db = dbconnector
-        if self.__db is not None:
-            return True
-        else:
-            return False
-        
-    # EN EL ARCHIVO VIVIENDA_DAO.PY (o donde esté el método login)
 
+    # ==========================
+    #  CONEXIÓN SEGURA
+    # ==========================
+    def get_connection(self):
+        conn = coneccion_bd()
+        if conn is None:
+            raise Exception("No se pudo conectar a la base de datos")
+        return conn
+
+    # ==========================
+    # LOGIN
+    # ==========================
     def login(self, user):
+        sql = """
+            SELECT id, usuario, password 
+            FROM usuario 
+            WHERE usuario = %s AND password = %s
         """
-        Verifica las credenciales del usuario y, si son correctas, 
-        carga el ID de la BD en el objeto 'user' y lo devuelve.
-        """
-        self.ensure_connection()
 
-        username = user.getNombre()
-        password = user.getContraseña()
+        values = (user.getNombre(), user.getContraseña())
 
-        # IMPORTANTE: ¡Nunca almacenes contraseñas sin hash!
-        # Este código usa la contraseña en texto plano, lo cual es INSEGURO. 
-        # Deberías usar funciones de hashing (como bcrypt) y verificar el hash aquí.
-        sql = "SELECT id, usuario, password FROM usuario WHERE usuario = %s AND password = %s"
-        values = (username, password)
+        conn = self.get_connection()
+        cursor = conn.cursor()
 
         try:
-            with self.__db.cursor() as cursor: 
-                cursor.execute(sql, values)
-                result = cursor.fetchone() 
-                
-                if result:
-                    # El ID está en la posición 0 del resultado:
-                    user_id = result[0] 
-                    
-                    # 1. Cargar el ID en el objeto 'Usuario' que se pasó como argumento
-                    user.setId(user_id) # Asumiendo que tu clase Usuario tiene un método setId()
+            cursor.execute(sql, values)
+            result = cursor.fetchone()
 
-                    print(f"✅ User {username} logged in successfully. ID: {user_id}")
-                    
-                    # 2. Devolver el objeto Usuario modificado con su ID
-                    return user 
-                else:
-                    print(f"❌ Login failed for user {username}.")
-                    # 3. Si falla, devuelve None
-                    return None
-                
-        except Exception as e:
-            print(f"Database error during login: {e}")
-            # En caso de error, devuelve None
-            return None
+            if result:
+                user.setId(result[0])
+                print(f"✅ Login OK: {user.getNombre()} ID={result[0]}")
+                return user
+            else:
+                print("❌ Login inválido")
+                return None
 
+        finally:
+            cursor.close()
+            conn.close()
+
+    # ==========================
+    # REGISTRO
+    # ==========================
     def register(self, user: Usuario):
-        self.ensure_connection()
-        with self.__db.cursor() as dbCursor:
-            sql = "INSERT INTO usuario (usuario, password, email) VALUES (%s, %s, %s)"
-            values = (user.getNombre(), user.getContraseña(), user.getEmail())
-            dbCursor.execute(sql, values)
-            self.__db.commit()
-            return self.checkRows(dbCursor.rowcount)
+        sql = "INSERT INTO usuario (usuario, password, email) VALUES (%s, %s, %s)"
+        values = (user.getNombre(), user.getContraseña(), user.getEmail())
 
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(sql, values)
+            conn.commit()
+            return cursor.rowcount == 1
+        finally:
+            cursor.close()
+            conn.close()
+
+    # ==========================
+    # INSERTAR VIVIENDA
+    # ==========================
     def insertVivienda(self, vivienda: Vivienda):
-        self.ensure_connection()
-        with self.__db.cursor() as dbCursor:
-            sql =  """
+
+        sql = """
         INSERT INTO vivienda (
-        nombre, balcony, bath_num, `condition`, floor, garage, garden, 
-        ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
-        m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id
+            nombre, balcony, bath_num, `condition`, floor, garage, garden, 
+            ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
+            m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id
         ) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
+
         values = (
             vivienda.getNombre(),
             vivienda.getBalcony(),
@@ -104,87 +99,83 @@ class ViviendaDAO:
             vivienda.getUnfurnished(),
             vivienda.getIdUsuario()
         )
-        dbCursor.execute(sql, values)
-        self.db.commit()
 
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(sql, values)
+            conn.commit()
+            return cursor.rowcount == 1
+        finally:
+            cursor.close()
+            conn.close()
+
+    # ==========================
+    # SELECT TODAS LAS VIVIENDAS
+    # ==========================
     def selectAllViviendas(self) -> List[Vivienda]:
-            self.ensure_connection()
-            viviendaARR: List[Vivienda] = []
 
-            with self.__db.cursor(dictionary=True) as dbCursor:
-                sql = """SELECT nombre, balcony, bath_num, condition, floor, garage, garden, 
+        sql = """
+            SELECT nombre, balcony, bath_num, `condition`, floor, garage, garden, 
                 ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
-                m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id FROM vivienda"""
-                dbCursor.execute(sql)
-                tuplaViviendas = dbCursor.fetchall()
+                m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id 
+            FROM vivienda
+        """
 
-                if not tuplaViviendas:
-                    print("No hay viviendas en la base de datos (consulta vacía).")
-                    return []
+        conn = self.get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-                for tupla in tuplaViviendas:
-                    vivienda = Vivienda()
-                    vivienda.setNombre(tupla["nombre"])
-                    vivienda.setBalcony(tupla["balcony"])
-                    vivienda.setBathNum(tupla["bath_num"])
-                    vivienda.setCondition(tupla["condition"])
-                    vivienda.setFloor(tupla["floor"])
-                    vivienda.setGarage(tupla["garage"])
-                    vivienda.setGarden(tupla["garden"])
-                    vivienda.setGroundSize(tupla["ground_size"])
-                    vivienda.setHouseType(tupla["house_type"])
-                    vivienda.setLift(tupla["lift"])
-                    vivienda.setLocCity(tupla["loc_city"])
-                    vivienda.setLocDistrict(tupla["loc_district"])
-                    vivienda.setLocNeigh(tupla["loc_neigh"])
-                    vivienda.setM2Real(tupla["m2_real"])
-                    vivienda.setPrice(tupla["price"])
-                    vivienda.setRoomNumbers(tupla["room_numbers"])
-                    vivienda.setSwimmingPool(tupla["swimming_pool"])
-                    vivienda.setTerrace(tupla["terrace"])
-                    vivienda.setUnfurnished(tupla["unfurnished"])
-                    vivienda.setIdUsuario(tupla["usuario_id"])
-                    viviendaARR.append(vivienda)
+        try:
+            cursor.execute(sql)
+            results = cursor.fetchall()
 
-            return viviendaARR
-        
+            viviendas = []
+            for row in results:
+                v = Vivienda()
+                v.setNombre(row["nombre"])
+                v.setBalcony(row["balcony"])
+                v.setBathNum(row["bath_num"])
+                v.setCondition(row["condition"])
+                v.setFloor(row["floor"])
+                v.setGarage(row["garage"])
+                v.setGarden(row["garden"])
+                v.setGroundSize(row["ground_size"])
+                v.setHouseType(row["house_type"])
+                v.setLift(row["lift"])
+                v.setLocCity(row["loc_city"])
+                v.setLocDistrict(row["loc_district"])
+                v.setLocNeigh(row["loc_neigh"])
+                v.setM2Real(row["m2_real"])
+                v.setPrice(row["price"])
+                v.setRoomNumbers(row["room_numbers"])
+                v.setSwimmingPool(row["swimming_pool"])
+                v.setTerrace(row["terrace"])
+                v.setUnfurnished(row["unfurnished"])
+                v.setIdUsuario(row["usuario_id"])
+                viviendas.append(v)
+
+            return viviendas
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    # ==========================
+    # ELIMINAR VIVIENDA
+    # ==========================
     def deleteVivienda(self, vivienda: Vivienda):
-            self.ensure_connection()
-            with self.__db.cursor() as dbCursor:
-                sql = "DELETE FROM vivienda WHERE idVivienda = %s"
-                values = (vivienda.getId(),)
-                dbCursor.execute(sql, values)
-                self.db.commit()
-                return self.checkRows(dbCursor.rowcount)
 
-    def selectViviendaByID(self, vivienda_template):
-            """Busca una vivienda por ID."""
-            for v in self.viviendas:
-                if v.getIdVivienda() == vivienda_template.getIdVivienda():
-                    return v
-            return None
+        sql = "DELETE FROM vivienda WHERE idVivienda = %s"
+        values = (vivienda.getId(),)
 
-    def closeConnection(self):
-            """Simula el cierre de la conexión (no hace nada en la versión en memoria)."""
-            print("DEBUG: Conexión de DAO cerrada (simulada).")
-            pass
-    
-    def ensure_connection(self):
-        """Asegura que la conexión a la BD (self.__db) está activa, reconectando si es necesario."""
-        # Se reconecta si la conexión no existe o está cerrada
-        if self.__db is None or not self.__db.is_connected():
-            print("DEBUG: Intentando reconectar a la base de datos...")
-            
-            # Llama a la función de conexión con las credenciales de servicio (fijas)
-            new_db = coneccion_bd() 
-            
-            if new_db is None:
-                # Si la reconexión falla, lanza una excepción que Flask atrapará como un 500
-                raise Exception("ERROR FATAL: No se pudo establecer la conexión a la base de datos de servicio.")
-            
-            self.__db = new_db
-        # Si ya está conectada, no hace nada.
-    
-    def checkRows(self, rowcount):
-        """Verifica si se afectó exactamente una fila (indicando éxito)."""
-        return rowcount == 1
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(sql, values)
+            conn.commit()
+            return cursor.rowcount == 1
+        finally:
+            cursor.close()
+            conn.close()

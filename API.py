@@ -74,7 +74,7 @@ def get_guardados():
 @app.route("/api/addVivienda", methods=["POST"])
 def insertVivienda():
     """Ruta para insertar una nueva vivienda en la base de datos simulada."""
-    data = req.get_json() or {}
+    data = req.get_json(force=True) or {}
 
     campos_esperados = [
         "nombre", "balcony", "bath_num", "condition", "floor", "garage", "garden",
@@ -242,12 +242,6 @@ def predictPrice():
     except Exception as e:
         print(f"ERROR en predictPrice: {str(e)}")
         return jsonify({"error": f"Error interno al procesar la predicción: {str(e)}"}), 500
-
-@app.teardown_appcontext
-def close_db_connection(exception):
-    """Cierra la conexión de la base de datos al finalizar la solicitud (simulado)."""
-    DAO.closeConnection()
-
 
 if __name__ == '__main__':
     # Ejecuta la aplicación Flask

@@ -1,5 +1,8 @@
 class Vivienda:
-    def __init__(self, nombre, balcony, bath_num, condition, floor, garage, garden, ground_size, house_type, lift, loc_city, loc_district, loc_neigh, m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, IdUsuario):
+    def __init__(self, nombre="", balcony=0, bath_num=0, condition="", floor=0, garage=0, garden=0, ground_size=0, 
+                 house_type="", lift=0, loc_city="", loc_district="", loc_neigh="", m2_real=0, price=0, room_numbers=0, 
+                 swimming_pool=0, terrace=0, unfurnished=0, IdUsuario=None
+    ):
         self.id_vivienda = None
         self.nombre = nombre
         self.balcony = balcony
@@ -27,7 +30,7 @@ class Vivienda:
     def getNombre(self):
         return self.nombre
     def getBalcony(self):
-        return self.baclcony
+        return self.balcony
     def getBathNum(self):
         return self.bath_num
     def getCondition(self):
@@ -90,8 +93,8 @@ class Vivienda:
         self.swimming_pool = nuevo_swimming_pool
     def setTerrace(self, nuevo_terrace):
         self.terrace = nuevo_terrace
-    def setBalcony(self, nuevo_baclcony):
-        self.baclcony = nuevo_baclcony
+    def setBalcony(self, nuevo_balcony):
+        self.balcony = nuevo_balcony
     def setBathNum(self, nuevo_bath_num):
         self.bath_num = nuevo_bath_num
     def setFloor(self, nuevo_floor):
@@ -110,7 +113,7 @@ class Vivienda:
     def to_dict(self):
         """Convierte el objeto Vivienda a un diccionario para JSON."""
         return {
-            "id_vivienda": self._id_vivienda,
+            "id_vivienda": self.id_vivienda,
             "nombre": self.nombre,
             "price": self.price,
             "m2_real": self.m2_real,
