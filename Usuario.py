@@ -5,6 +5,12 @@ class Usuario:
         self.contraseña = contraseña
         self.email = email
     
+    def setId(self, id):
+        self.id_usuario = id
+
+    def getId(self):
+        return self.id_usuario
+
     def getIdUsuario(self):
         return self.id_usuario
     
