@@ -25,3 +25,6 @@ class Usuario:
     
     def setEmail(self, nuevo_email):
         self.email = nuevo_email
+        
+    def setId(self, nuevo_id):
+        self.id_usuario = nuevo_id

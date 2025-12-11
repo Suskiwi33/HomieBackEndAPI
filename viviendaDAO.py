@@ -18,7 +18,6 @@ class ViviendaDAO:
         else:
             return False
         
-    # EN EL ARCHIVO VIVIENDA_DAO.PY (o donde esté el método login)
 
     def login(self, user):
         """
@@ -30,9 +29,7 @@ class ViviendaDAO:
         username = user.getNombre()
         password = user.getContraseña()
 
-        # IMPORTANTE: ¡Nunca almacenes contraseñas sin hash!
-        # Este código usa la contraseña en texto plano, lo cual es INSEGURO. 
-        # Deberías usar funciones de hashing (como bcrypt) y verificar el hash aquí.
+        
         sql = "SELECT id, usuario, password FROM usuario WHERE usuario = %s AND password = %s"
         values = (username, password)
 
@@ -42,24 +39,19 @@ class ViviendaDAO:
                 result = cursor.fetchone() 
                 
                 if result:
-                    # El ID está en la posición 0 del resultado:
                     user_id = result[0] 
                     
-                    # 1. Cargar el ID en el objeto 'Usuario' que se pasó como argumento
                     user.setId(user_id) # Asumiendo que tu clase Usuario tiene un método setId()
 
                     print(f"✅ User {username} logged in successfully. ID: {user_id}")
                     
-                    # 2. Devolver el objeto Usuario modificado con su ID
                     return user 
                 else:
                     print(f"❌ Login failed for user {username}.")
-                    # 3. Si falla, devuelve None
                     return None
                 
         except Exception as e:
             print(f"Database error during login: {e}")
-            # En caso de error, devuelve None
             return None
 
     def register(self, user: Usuario):
