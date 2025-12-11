@@ -114,14 +114,15 @@ class ViviendaDAO:
     # ==========================
     # SELECT TODAS LAS VIVIENDAS
     # ==========================
-    def selectAllViviendas(self) -> List[Vivienda]:
+    def selectAllViviendas(self, user_id) -> List[Vivienda]:
 
         sql = """
             SELECT nombre, balcony, bath_num, `condition`, floor, garage, garden, 
                 ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
                 m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id 
-            FROM vivienda
+            FROM vivienda where usuario_id = %s
         """
+        sql = sql % (user_id,)
 
         conn = self.get_connection()
         cursor = conn.cursor(dictionary=True)

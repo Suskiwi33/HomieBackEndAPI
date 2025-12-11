@@ -66,12 +66,12 @@ def register():
 # -----------------------------
 @app.route("/api/guardados", methods=["GET"])
 @jwt_required()
-def get_guardados():
-    usuario_nombre = get_jwt_identity()
-    guardados = DAO.selectViviendasByUsuario(usuario_nombre) or []
+def get_guardados(userId):
+    user_id = userId
+    guardados = DAO.selectAllViviendas(user_id) or []
     guardados_list = [v.to_dict() for v in guardados]
 
-    return jsonify({"usuario": usuario_nombre, "guardados": guardados_list})
+    return jsonify({"usuario": user_id, "guardados": guardados_list})
 
 
 # -----------------------------
