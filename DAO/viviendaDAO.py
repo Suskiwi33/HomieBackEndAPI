@@ -4,9 +4,9 @@ from typing import List
 
 class ViviendaDAO:
 
-    def get_connection(self, user: str, passw: str):
+    def get_connection(self):
         
-        conn = coneccion_bd(user, passw)
+        conn = coneccion_bd()
         if conn is None:
             raise Exception("No se pudo conectar a la base de datos")
         return conn
@@ -30,7 +30,7 @@ class ViviendaDAO:
             vivienda.getRoomNumbers(), vivienda.getSwimmingPool(), vivienda.getTerrace(),
             vivienda.getUnfurnished(), vivienda.getIdUsuario()
         )
-        conn = self.get_connection(userbd, passwbd)
+        conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
@@ -51,7 +51,7 @@ class ViviendaDAO:
         """
         sql = sql % (user_id,)
 
-        conn = self.get_connection(userbd, passwbd)
+        conn = self.get_connection()
         cursor = conn.cursor(dictionary=True)
 
         try:
@@ -94,7 +94,7 @@ class ViviendaDAO:
     def deleteVivienda(self, vivienda: Vivienda, userbd: str, passwbd: str) -> bool:
         sql = "DELETE FROM vivienda WHERE id = %s"
         values = (vivienda.getIdVivienda(),)
-        conn = self.get_connection(userbd, passwbd)
+        conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
@@ -111,7 +111,7 @@ class ViviendaDAO:
         sql = "SELECT id FROM vivienda WHERE id = %s"
         values = (idVivienda,)
 
-        conn = self.get_connection(userbd, passwbd)
+        conn = self.get_connection()
         cursor = conn.cursor(dictionary=True)
 
         try:

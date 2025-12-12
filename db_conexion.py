@@ -1,11 +1,11 @@
 import mysql.connector
 
-def coneccion_bd(user, passw):
+def coneccion_bd():
     try:
         connection = mysql.connector.connect(
             host="localhost",
-            user=user,
-            password=passw,
+            user="",
+            password="",
             database="homie"
         )
         if connection.is_connected():
