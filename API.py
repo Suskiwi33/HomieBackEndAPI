@@ -10,7 +10,8 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from datetime import timedelta
 
 app = Flask(__name__)
-
+userbd = ""
+passwbd = ""
 DAOV = ViviendaDAO()
 DAOU = UsuarioDAO()
 
@@ -30,7 +31,7 @@ def login():
     user.setNombre(data.get("username"))
     user.setContraseña(data.get("password"))
 
-    authenticated_user = DAOU.login(user)
+    authenticated_user = DAOU.login(user, userbd, passwbd)
 
     if authenticated_user:
         access_token = create_access_token(identity=authenticated_user.getNombre())
@@ -51,7 +52,7 @@ def register():
     user.setContraseña(data.get("password"))
     user.setEmail(data.get("email"))
 
-    if DAOU.register(user):
+    if DAOU.register(user, userbd, passwbd):
         return jsonify({"message": f"Usuario '{user.getNombre()}' registrado correctamente."}), 201
     else:
         return jsonify({"error": "Error al registrar usuario"}), 500
@@ -127,7 +128,7 @@ def insertVivienda():
     except Exception as e:
         return jsonify({"error": f"Error al crear Vivienda: {str(e)}"}), 500
 
-    ok = DAOV.insertVivienda(v)
+    ok = DAOV.insertVivienda(v, userbd, passwbd)
 
     if not ok:
         return jsonify({"error": "Error al insertar vivienda"}), 500
@@ -148,12 +149,12 @@ def deleteVivienda(id):
     temp = Vivienda()
     temp.setIdVivienda(idv) 
 
-    viv = DAOV.selectViviendaByID(temp)
+    viv = DAOV.selectViviendaByID(temp, userbd, passwbd)
 
     if not viv:
         return jsonify({"error": "Vivienda no encontrada"}), 404
 
-    ok = DAOV.deleteVivienda(viv)
+    ok = DAOV.deleteVivienda(viv, userbd, passwbd)
 
     if not ok:
         return jsonify({"error": "Error eliminando vivienda"}), 500
@@ -210,4 +211,7 @@ def predictPrice():
 
 # RUN SERVER
 if __name__ == "__main__":
+    userbd = input("Usuario Base Datos (mysql): ")
+    passwbd = input("Contraseña Base Datos (mysql): ")
     app.run(debug=True, host="0.0.0.0", port=5000)
+    

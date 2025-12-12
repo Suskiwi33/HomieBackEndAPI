@@ -4,16 +4,15 @@ from typing import List
 
 class ViviendaDAO:
 
-    def get_connection(self):
-        user = input("Usuario de la base de datos: ")
-        passw = input("Contraseña de la base de datos: ")
+    def get_connection(self, user: str, passw: str):
+        
         conn = coneccion_bd(user, passw)
         if conn is None:
             raise Exception("No se pudo conectar a la base de datos")
         return conn
 
     # INSERTAR VIVIENDA
-    def insertVivienda(self, vivienda: Vivienda):
+    def insertVivienda(self, vivienda: Vivienda, userbd: str, passwbd: str) -> bool:
         sql = """
         INSERT INTO vivienda (
             nombre, balcony, bath_num, `condition`, floor, garage, garden, 
@@ -31,7 +30,7 @@ class ViviendaDAO:
             vivienda.getRoomNumbers(), vivienda.getSwimmingPool(), vivienda.getTerrace(),
             vivienda.getUnfurnished(), vivienda.getIdUsuario()
         )
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
@@ -43,7 +42,7 @@ class ViviendaDAO:
             conn.close()
 
     # SELECT TODAS
-    def selectAllViviendas(self, user_id) -> List[Vivienda]:
+    def selectAllViviendas(self, user_id, userbd: str, passwbd: str) -> List[Vivienda]:
         sql = """
             SELECT id, nombre, balcony, bath_num, `condition`, floor, garage, garden, 
                 ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
@@ -52,7 +51,7 @@ class ViviendaDAO:
         """
         sql = sql % (user_id,)
 
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor(dictionary=True)
 
         try:
@@ -92,10 +91,10 @@ class ViviendaDAO:
             conn.close()
 
     # DELETE
-    def deleteVivienda(self, vivienda: Vivienda):
+    def deleteVivienda(self, vivienda: Vivienda, userbd: str, passwbd: str) -> bool:
         sql = "DELETE FROM vivienda WHERE id = %s"
         values = (vivienda.getIdVivienda(),)
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
@@ -106,13 +105,13 @@ class ViviendaDAO:
             conn.close()
 
     # SELECT BY ID
-    def selectViviendaByID(self, vivienda: Vivienda):
+    def selectViviendaByID(self, vivienda: Vivienda, userbd: str, passwbd: str) -> Vivienda:
         idVivienda = vivienda.getIdVivienda()
 
         sql = "SELECT id FROM vivienda WHERE id = %s"
         values = (idVivienda,)
 
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor(dictionary=True)
 
         try:

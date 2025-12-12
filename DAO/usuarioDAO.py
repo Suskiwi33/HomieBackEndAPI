@@ -3,9 +3,7 @@ from db_conexion import coneccion_bd
 
 class UsuarioDAO:
 
-    def get_connection(self):
-        user = input("Usuario de la base de datos: ")
-        passw = input("Contraseña de la base de datos: ")
+    def get_connection(self, user, passw):
         conn = coneccion_bd(user, passw)
         conn = coneccion_bd()
         if conn is None:
@@ -13,10 +11,10 @@ class UsuarioDAO:
         return conn
     
     # LOGIN
-    def login(self, user):
+    def login(self, user, userbd, passwbd):
         sql = "SELECT id, usuario, password FROM usuario WHERE usuario = %s AND password = %s"
         values = (user.getNombre(), user.getContraseña())
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
@@ -31,10 +29,10 @@ class UsuarioDAO:
             conn.close()
 
     # REGISTRO
-    def register(self, user: Usuario):
+    def register(self, user: Usuario, userbd, passwbd):
         sql = "INSERT INTO usuario (usuario, password, email) VALUES (%s, %s, %s)"
         values = (user.getNombre(), user.getContraseña(), user.getEmail())
-        conn = self.get_connection()
+        conn = self.get_connection(userbd, passwbd)
         cursor = conn.cursor()
         try:
             cursor.execute(sql, values)
