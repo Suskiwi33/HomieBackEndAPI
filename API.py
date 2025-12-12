@@ -64,7 +64,7 @@ def register():
 # -----------------------------
 # GET VIVIENDAS GUARDADAS
 # -----------------------------
-@app.route("/api/guardados", methods=["GET"])
+@app.route("/api/guardados/<int:userId>", methods=["GET"])
 @jwt_required()
 def get_guardados(userId):
     user_id = userId
@@ -78,6 +78,7 @@ def get_guardados(userId):
 # INSERTAR VIVIENDA
 # -----------------------------
 @app.route("/api/addVivienda", methods=["POST"])
+@jwt_required()
 def insertVivienda():
     data = req.get_json(force=True) or {}
 
@@ -146,19 +147,17 @@ def insertVivienda():
 # -----------------------------
 # DELETE VIVIENDA
 # -----------------------------
-@app.route("/api/deleteVivienda", methods=["DELETE"])
-def deleteVivienda():
-    id_str = req.args.get("id")
-    if not id_str:
-        return jsonify({"error": "Id requerido"}), 400
+@app.route("/api/deleteVivienda/<int:id>", methods=["DELETE"])
+@jwt_required()
+def deleteVivienda(id):
 
     try:
-        idv = int(id_str)
+        idv = int(id)
     except ValueError:
         return jsonify({"error": "Id inválido"}), 400
 
     temp = Vivienda()
-    temp.setIdVivienda(idv)
+    temp.setIdVivienda(idv) 
 
     viv = DAO.selectViviendaByID(temp)
 
@@ -170,7 +169,7 @@ def deleteVivienda():
     if not ok:
         return jsonify({"error": "Error eliminando vivienda"}), 500
 
-    return jsonify({"message": "Vivienda eliminada"})
+    return jsonify({"message": "Vivienda eliminada"}), 200
 
 
 # -----------------------------

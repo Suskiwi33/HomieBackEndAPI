@@ -1,5 +1,5 @@
 class Vivienda:
-    def __init__(self, nombre="", balcony=0, bath_num=0, condition="", floor=0, garage=0, garden=0, ground_size=0, 
+    def __init__(self, id_vivienda=None, nombre="", balcony=0, bath_num=0, condition="", floor=0, garage=0, garden=0, ground_size=0, 
                  house_type="", lift=0, loc_city="", loc_district="", loc_neigh="", m2_real=0, price=0, room_numbers=0, 
                  swimming_pool=0, terrace=0, unfurnished=0, IdUsuario=None
     ):
