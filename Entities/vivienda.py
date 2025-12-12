@@ -1,6 +1,6 @@
 class Vivienda:
     def __init__(self, id_vivienda=None, nombre="", balcony=0, bath_num=0, condition="", floor=0, garage=0, garden=0, ground_size=0, 
-                 house_type="", lift=0, loc_city="", loc_district="", loc_neigh="", m2_real=0, price=0, room_numbers=0, 
+                 house_type="", lift=0, loc_city="", m2_real=0, price=0, room_numbers=0, 
                  swimming_pool=0, terrace=0, unfurnished=0, IdUsuario=None
     ):
         self.id_vivienda = None
@@ -15,8 +15,6 @@ class Vivienda:
         self.house_type = house_type
         self.lift = lift
         self.loc_city = loc_city
-        self.loc_district = loc_district
-        self.loc_neigh = loc_neigh
         self.m2_real = m2_real
         self.price = price
         self.room_numbers = room_numbers
@@ -49,10 +47,6 @@ class Vivienda:
         return self.lift
     def getLocCity(self):
         return self.loc_city
-    def getLocDistrict(self):
-        return self.loc_district
-    def getLocNeigh(self):
-        return self.loc_neigh
     def getM2Real(self):
         return self.m2_real
     def getPrice(self):
@@ -81,10 +75,6 @@ class Vivienda:
         self.condition = nueva_condition
     def setLocCity(self, nueva_loc_city):
         self.loc_city = nueva_loc_city
-    def setLocDistrict(self, nueva_loc_district):
-        self.loc_district = nueva_loc_district
-    def setLocNeigh(self, nueva_loc_neigh):
-        self.loc_neigh = nueva_loc_neigh
     def setGarage(self, nuevo_garage):
         self.garage = nuevo_garage
     def setGarden(self, nuevo_garden):

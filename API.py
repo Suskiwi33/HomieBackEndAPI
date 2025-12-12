@@ -75,7 +75,7 @@ def insertVivienda():
 
     campos_esperados = [
         "nombre", "balcony", "bath_num", "condition", "floor", "garage", "garden",
-        "ground_size", "house_type", "lift", "loc_city", "loc_district", "loc_neigh",
+        "ground_size", "house_type", "lift", "loc_city",
         "m2_real", "price", "room_num", "swimming_pool", "terrace", "unfurnished",
         "user_id"
     ]
@@ -114,8 +114,6 @@ def insertVivienda():
         v.setHouseType(datos.get("house_type", ""))
         v.setLift(datos.get("lift", 0))
         v.setLocCity(datos.get("loc_city", ""))
-        v.setLocDistrict(datos.get("loc_district", ""))
-        v.setLocNeigh(datos.get("loc_neigh", ""))
         v.setM2Real(datos.get("m2_real", 0))
         v.setRoomNumbers(datos.get("room_num", 0))
         v.setSwimmingPool(datos.get("swimming_pool", 0))

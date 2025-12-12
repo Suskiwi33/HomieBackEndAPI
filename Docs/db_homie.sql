@@ -27,8 +27,6 @@ CREATE TABLE `vivienda` (
   `house_type` varchar(50) DEFAULT NULL,
   `lift` tinyint(1) DEFAULT NULL,
   `loc_city` varchar(100) DEFAULT NULL,
-  `loc_district` varchar(100) DEFAULT NULL,
-  `loc_neigh` varchar(100) DEFAULT NULL,
   `m2_real` decimal(10,2) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `room_numbers` int DEFAULT NULL,

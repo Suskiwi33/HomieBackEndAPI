@@ -17,17 +17,17 @@ class ViviendaDAO:
         sql = """
         INSERT INTO vivienda (
             nombre, balcony, bath_num, `condition`, floor, garage, garden, 
-            ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
+            ground_size, house_type, lift, loc_city, 
             m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id
         ) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         values = (
             vivienda.getNombre(), vivienda.getBalcony(), vivienda.getBathNum(),
             vivienda.getCondition(), vivienda.getFloor(), vivienda.getGarage(),
             vivienda.getGarden(), vivienda.getGroundSize(), vivienda.getHouseType(),
-            vivienda.getLift(), vivienda.getLocCity(), vivienda.getLocDistrict(),
-            vivienda.getLocNeigh(), vivienda.getM2Real(), vivienda.getPrice(),
+            vivienda.getLift(), vivienda.getLocCity(),
+            vivienda.getM2Real(), vivienda.getPrice(),
             vivienda.getRoomNumbers(), vivienda.getSwimmingPool(), vivienda.getTerrace(),
             vivienda.getUnfurnished(), vivienda.getIdUsuario()
         )
@@ -50,7 +50,7 @@ class ViviendaDAO:
         
         sql = """
             SELECT id, nombre, balcony, bath_num, `condition`, floor, garage, garden, 
-                ground_size, house_type, lift, loc_city, loc_district, loc_neigh, 
+                ground_size, house_type, lift, loc_city, 
                 m2_real, price, room_numbers, swimming_pool, terrace, unfurnished, usuario_id 
             FROM vivienda where usuario_id = %s
         """
@@ -68,7 +68,6 @@ class ViviendaDAO:
             for row in results:
                 v = Vivienda()
                 v.setIdVivienda(row["id"]) 
-                
                 v.setNombre(row["nombre"])
                 v.setBalcony(row["balcony"])
                 v.setBathNum(row["bath_num"])
@@ -80,8 +79,6 @@ class ViviendaDAO:
                 v.setHouseType(row["house_type"])
                 v.setLift(row["lift"])
                 v.setLocCity(row["loc_city"])
-                v.setLocDistrict(row["loc_district"])
-                v.setLocNeigh(row["loc_neigh"])
                 v.setM2Real(row["m2_real"])
                 v.setPrice(row["price"])
                 v.setRoomNumbers(row["room_numbers"])
