@@ -6,73 +6,106 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# --- 1. FEATURES QUE SÍ VAS A USAR ---
+# --------------------------------------------------------------------
+# FEATURES usados en el modelo (IGUALES que model_service)
+# --------------------------------------------------------------------
 MODEL_FEATURES = [
     'm2_real', 'room_num', 'bath_num', 'balcony', 'floor', 'garage', 'garden',
     'ground_size', 'lift', 'swimming_pool', 'terrace', 'unfurnished',
     'condition', 'house_type', 'loc_city'
 ]
 
-# --- 2. MAPEOS DE VARIABLES CATEGÓRICAS ---
+# --------------------------------------------------------------------
+# MAPEOS (IGUALES que model_service.py)
+# --------------------------------------------------------------------
 D_MAPPINGS = {
     'condition': {
-        'new': 1, 'good': 2, 'needs_renovation': 3, 'old': 4,
+        'new': 0,
         'segunda mano/buen estado': 2,
-        'segunda mano/a reformar': 3,
-        'obra nueva': 1
+        'segunda mano/a reformar': 1,
+        'reformar': 3
     },
+
     'house_type': {
-        'piso': 1, 'casa': 2, 'casa o chalet independiente': 2, 'ático': 3,
-        'apartment': 1, 'house': 2, 'penthouse': 3
+        'apartamento': 0,
+        'finca rústica': 4,
+        'chalet adosado': 2,
+        'estudio': 3,
+        'chalet independiente': 1,
+        'piso': 5,
     },
+
     'loc_city': {
-        'vilafranca del penedès': 900,
-        'madrid': 100,
-        'barcelona': 200,
-        'valencia': 300
+        'avinyonet del penedès': 0,
+        'castellví de la marca': 1,
+        'el pla del penedès': 2,
+        'font-rubí': 3,
+        'gelida': 4,
+        'la granada': 5,
+        'les cabanyes': 6,
+        'mediona': 7,
+        'olèrdola': 8,
+        'pacs del penedès': 9,
+        'pontons': 10,
+        'puigdàlber': 11,
+        'sant cugat sesgarrigues': 12,
+        "sant llorenç d'hortons": 13,
+        'sant martí sarroca': 14,
+        'sant pere de riudebitlles': 15,
+        'sant quintí de mediona': 16,
+        "sant sadurní d'anoia": 17,
+        'santa margarida i els monjos': 18,
+        'subirats': 19,
+        'torrelavit': 20,
+        'torrelles de foix': 21,
+        'vilafranca del penedès': 22,
+        'vilobí del penedès': 23
     }
 }
 
 TARGET_COLUMN = 'price'
 
 
-# --- 3. PREPROCESAMIENTO ---
+# --------------------------------------------------------------------
+# PREPROCESAMIENTO (ADAPTADO para usar TODAS las ciudades)
+# --------------------------------------------------------------------
 def preprocess_data(df):
+
     df_copy = df.copy()
 
-    TARGET_CITY_NAME = 'vilafranca del penedès'
-    TARGET_CITY_CODE = 900
-
+    # Normalizar ciudad
     df_copy['loc_city_clean'] = df_copy['loc_city'].astype(str).str.lower().str.strip()
 
-    df_filtered = df_copy[df_copy['loc_city_clean'] == TARGET_CITY_NAME].copy()
-    if df_filtered.empty:
-        raise ValueError(f"No hay datos para '{TARGET_CITY_NAME}'")
+    # Mapear TODAS las ciudades disponibles
+    df_copy['loc_city'] = df_copy['loc_city_clean'].map(D_MAPPINGS['loc_city']).fillna(-1)
 
-    df_filtered.drop(columns=['loc_city_clean'], errors='ignore', inplace=True)
+    # Filtrar solo entradas válidas
+    df_copy = df_copy[df_copy['loc_city'] >= 0]
 
+    df_copy.drop(columns=['loc_city_clean'], inplace=True)
+
+    # Convertir numéricos
     for col in ['bath_num', 'room_num']:
-        if col in df_filtered.columns:
-            df_filtered[col] = pd.to_numeric(df_filtered[col], errors='coerce')
+        if col in df_copy.columns:
+            df_copy[col] = pd.to_numeric(df_copy[col], errors='coerce')
 
+    # Aplicar mappings categóricos restantes
     for col, mapping in D_MAPPINGS.items():
-        if col in df_filtered.columns:
-            df_filtered[col] = (
-                df_filtered[col].astype(str).str.lower().map(mapping).fillna(0)
-            )
+        if col in df_copy.columns and col != 'loc_city':
+            df_copy[col] = df_copy[col].astype(str).str.lower().map(mapping).fillna(0)
 
-    df_filtered['loc_city'] = TARGET_CITY_CODE
-
-    X = pd.DataFrame(0, index=df_filtered.index, columns=MODEL_FEATURES)
+    # Construcción de matriz X
+    X = pd.DataFrame(0, index=df_copy.index, columns=MODEL_FEATURES)
     for col in MODEL_FEATURES:
-        if col in df_filtered.columns:
-            X[col] = df_filtered[col].fillna(0)
+        if col in df_copy.columns:
+            X[col] = df_copy[col].fillna(0)
 
     X = X.replace([np.inf, -np.inf], np.nan).fillna(0)
     X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
 
-    Y = df_filtered[TARGET_COLUMN].copy()
+    Y = df_copy[TARGET_COLUMN].copy()
 
+    # Filtrar precios razonables > 1000 €
     valid_idx = Y[Y > 1000].index
     X = X.loc[valid_idx]
     Y = Y.loc[valid_idx]
@@ -83,7 +116,9 @@ def preprocess_data(df):
     return X, Y
 
 
-# --- 4. ENTRENAR Y GUARDAR EL MODELO ---
+# --------------------------------------------------------------------
+# ENTRENAR Y GUARDAR EL MODELO (COMPATIBLE con model_service)
+# --------------------------------------------------------------------
 def train_and_save_model(data_path):
     try:
         df = pd.read_csv(data_path)
@@ -104,7 +139,7 @@ def train_and_save_model(data_path):
     print(f"Entrenando modelo con {len(X)} filas...")
 
     model = RandomForestRegressor(
-        n_estimators=100,
+        n_estimators=200,
         random_state=42,
         n_jobs=-1
     )
@@ -114,6 +149,8 @@ def train_and_save_model(data_path):
     print("Modelo guardado como random_forest_model.pkl")
 
 
-# --- 5. EJECUCIÓN ---
+# --------------------------------------------------------------------
+# EJECUCIÓN
+# --------------------------------------------------------------------
 if __name__ == "__main__":
     train_and_save_model("Docs/houses_barcelona.csv")
