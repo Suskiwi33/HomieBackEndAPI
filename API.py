@@ -1,30 +1,28 @@
 from flask import Flask, jsonify, request as req
 import pandas as pd
-from model_service import D_MAPPINGS, MAE, MODEL_FEATURES, MockRandomForestModel
-from viviendaDAO import ViviendaDAO
-from vivienda import Vivienda
-from Usuario import Usuario
+from AI_Training.model_service import D_MAPPINGS, MAE, MODEL_FEATURES, MockRandomForestModel
+from DAO.viviendaDAO import ViviendaDAO
+from DAO.usuarioDAO import UsuarioDAO
+from Entities.vivienda import Vivienda
+from Entities.usuario import Usuario
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 
 app = Flask(__name__)
 
-# Instancia del DAO (sin conexión persistente)
-DAO = ViviendaDAO()
+DAOV = ViviendaDAO()
+DAOU = UsuarioDAO()
 
-# CORS
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
 
-# JWT
+
 app.config['JWT_SECRET_KEY'] = '123456'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
 
-# -----------------------------
 # LOGIN
-# -----------------------------
 @app.route("/api/login", methods=["POST"])
 def login():
     data = req.get_json() or {}
@@ -32,7 +30,7 @@ def login():
     user.setNombre(data.get("username"))
     user.setContraseña(data.get("password"))
 
-    authenticated_user = DAO.login(user)
+    authenticated_user = DAOU.login(user)
 
     if authenticated_user:
         access_token = create_access_token(identity=authenticated_user.getNombre())
@@ -44,9 +42,7 @@ def login():
         return jsonify({"error": "Credenciales inválidas"}), 401
 
 
-# -----------------------------
 # REGISTER
-# -----------------------------
 @app.route("/api/register", methods=["POST"])
 def register():
     data = req.get_json() or {}
@@ -55,28 +51,24 @@ def register():
     user.setContraseña(data.get("password"))
     user.setEmail(data.get("email"))
 
-    if DAO.register(user):
+    if DAOU.register(user):
         return jsonify({"message": f"Usuario '{user.getNombre()}' registrado correctamente."}), 201
     else:
         return jsonify({"error": "Error al registrar usuario"}), 500
 
 
-# -----------------------------
 # GET VIVIENDAS GUARDADAS
-# -----------------------------
 @app.route("/api/guardados/<int:userId>", methods=["GET"])
 @jwt_required()
 def get_guardados(userId):
     user_id = userId
-    guardados = DAO.selectAllViviendas(user_id) or []
+    guardados = DAOV.selectAllViviendas(user_id) or []
     guardados_list = [v.to_dict() for v in guardados]
 
     return jsonify({"usuario": user_id, "guardados": guardados_list})
 
 
-# -----------------------------
 # INSERTAR VIVIENDA
-# -----------------------------
 @app.route("/api/addVivienda", methods=["POST"])
 @jwt_required()
 def insertVivienda():
@@ -94,7 +86,6 @@ def insertVivienda():
     if not datos.get("nombre") or datos.get("price") is None:
         return jsonify({"error": "Los campos 'nombre' y 'price' son obligatorios"}), 400
 
-    # Normalizar valores
     try:
         for n in ["price", "m2_real"]:
             if datos.get(n) is not None:
@@ -136,7 +127,7 @@ def insertVivienda():
     except Exception as e:
         return jsonify({"error": f"Error al crear Vivienda: {str(e)}"}), 500
 
-    ok = DAO.insertVivienda(v)
+    ok = DAOV.insertVivienda(v)
 
     if not ok:
         return jsonify({"error": "Error al insertar vivienda"}), 500
@@ -144,9 +135,7 @@ def insertVivienda():
     return jsonify({"message": "Vivienda insertada", "id": v.getIdVivienda()}), 201
 
 
-# -----------------------------
 # DELETE VIVIENDA
-# -----------------------------
 @app.route("/api/deleteVivienda/<int:id>", methods=["DELETE"])
 @jwt_required()
 def deleteVivienda(id):
@@ -159,12 +148,12 @@ def deleteVivienda(id):
     temp = Vivienda()
     temp.setIdVivienda(idv) 
 
-    viv = DAO.selectViviendaByID(temp)
+    viv = DAOV.selectViviendaByID(temp)
 
     if not viv:
         return jsonify({"error": "Vivienda no encontrada"}), 404
 
-    ok = DAO.deleteVivienda(viv)
+    ok = DAOV.deleteVivienda(viv)
 
     if not ok:
         return jsonify({"error": "Error eliminando vivienda"}), 500
@@ -172,15 +161,12 @@ def deleteVivienda(id):
     return jsonify({"message": "Vivienda eliminada"}), 200
 
 
-# -----------------------------
 # PREDICT PRICE
-# -----------------------------
 @app.route("/api/predictPrice", methods=["POST"])
 def predictPrice():
     data = req.get_json() or {}
 
     try:
-        # Preparar datos
         input_data = {}
         for feature in MODEL_FEATURES:
             if feature in D_MAPPINGS:
@@ -190,7 +176,6 @@ def predictPrice():
 
         df_usuario = pd.DataFrame([input_data])
 
-        # Aplicar mapeos
         for col, mapping in D_MAPPINGS.items():
             if col in df_usuario:
                 df_usuario[col] = df_usuario[col].map(mapping)
@@ -223,8 +208,6 @@ def predictPrice():
         return jsonify({"error": str(e)}), 500
 
 
-# -----------------------------
 # RUN SERVER
-# -----------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

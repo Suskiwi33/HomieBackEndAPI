@@ -1,3 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS `homie` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+USE `homie`;
+
 DROP TABLE IF EXISTS `usuario`;
 CREATE TABLE `usuario` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -40,4 +44,3 @@ CREATE TABLE `vivienda` (
 
 LOCK TABLES `vivienda` WRITE;
 UNLOCK TABLES;
-
