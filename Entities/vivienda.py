@@ -112,8 +112,6 @@ class Vivienda:
             "condition": self.condition,
             "house_type": self.house_type,
             "loc_city": self.loc_city,
-            "loc_district": self.loc_district,
-            "loc_neigh": self.loc_neigh,
             "balcony": self.balcony,
             "floor": self.floor,
             "garage": self.garage,
