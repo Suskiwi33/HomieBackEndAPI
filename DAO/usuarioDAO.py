@@ -15,7 +15,7 @@ class UsuarioDAO:
         sql = "SELECT id, usuario, password FROM usuario WHERE usuario = %s AND password = %s"
         values = (user.getNombre(), user.getContraseña())
         conn = self.get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(buffered=True)
         try:
             cursor.execute(sql, values)
             result = cursor.fetchone()
